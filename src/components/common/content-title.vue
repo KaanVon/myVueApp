@@ -1,19 +1,18 @@
 <template>
   <div>
     <div class="content-title">
-      <Icon v-if="back" class="content-back" type="md-undo" @click.native="goBack"></Icon>
+      <Icon  class="content-back" type="ios-undo" @click.native="goBack"></Icon>
+    </div>
+    <div style="padding-top: 10px;">
+      <ATitle>
+        <span class="atitle">新增客户</span>
+      </ATitle>
     </div>
   </div>
 </template>
 
 <script>
 export default {
-  props: {
-    back: {
-      type: Boolean,
-      default: false
-    }
-  },
   data() {
     return {};
   },

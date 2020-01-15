@@ -34,14 +34,63 @@ export default {
   data() {
     return {
       menuList: [],
-      selectedList:[]
+      selectedList: []
     };
   },
   methods: {
-    getMenuList() {},
-    saveRoleMenu() {}
+    getMenuList() {
+      this.$http.post("/Menu/List").then(res => {
+        if (!res.data.iserror) {
+          this.menuList = res.data.data;
+        } else {
+          this.$Notice.error({
+            title: "提示",
+            desc: res.data.errormsg
+          });
+        }
+      });
+    },
+    getRoleMenu() {
+      this.$http.post("/role/GetMenu", { oid: this.role.oid }).then(res => {
+        if (!res.data.iserror) {
+          this.selectedList = res.data.data.menus;
+        } else {
+          this.$Notice.error({
+            title: "提示",
+            desc: res.data.errormsg
+          });
+        }
+      });
+    },
+    saveRoleMenu() {
+      this.$Spin.show();
+      this.$http
+        .post("/role/SetMenu", { oid: this.role.oid, menus: this.selectedList })
+        .then(res => {
+          this.$Spin.hide();
+          if (!res.data.iserror) {
+            this.$Notice.success({
+              title: "提示",
+              desc: "保存成功"
+            });
+            this.$store.dispatch('getMyMenuList')
+          } else {
+            this.$Modal.error({
+              title: "提示",
+              content: res.data.errormsg
+            });
+          }
+        });
+    }
   },
-  mounted() {}
+  mounted() {
+    this.getMenuList();
+  },
+  watch: {
+    role(a) {
+      this.getRoleMenu();
+    }
+  }
 };
 </script>
 

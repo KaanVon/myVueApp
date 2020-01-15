@@ -1,8 +1,10 @@
 <template>
   <div>
     <div style="display: flex;height: 350px;">
-      <div style="flex:1;border-right: 1px solid #ccc; padding:0 10px 0 10px;overflow-x:auto;overflow-x: hidden;">
-        <i-Input placeholder="输入搜索" icon="search" v-model="searchKey" @on-change="getSearch"></i-Input>
+      <div
+        style="flex:1;border-right: 1px solid #ccc; padding:0 10px 0 10px;overflow-x:auto;overflow-x: hidden;"
+      >
+        <i-Input placeholder="输入搜索" icon="search" v-model="searchKey" @on-change="getTreeData"></i-Input>
         <tree multiple :data="treeData"></tree>
       </div>
       <div style="flex:1;padding-left:20px;">
@@ -21,6 +23,11 @@
 
 <script>
 export default {
+  props: {
+    filterUsers: {
+      type: Array
+    }
+  },
   data() {
     return {
       treeData: [],
@@ -30,81 +37,97 @@ export default {
   },
   methods: {
     getTreeData() {
-      var list = [
-        { oid: 1, name: "冯凯", gender: 1 },
-        { oid: 2, name: "冯艳", gender: 0 }
-      ];
-      var d = [];
-      var that = this;
-      list.forEach(item => {
-        d.push({
-          title: item.name,
-          params: item,
-          render: (h, { root, node, data }) => {
-            return h(
-              "span",
-              {
-                style: {
-                  display: "inline-block",
-                  width: "100%"
-                }
-              },
-              [
-                h("icon", {
-                  props: {
-                    type: "ios-person"
-                  },
+      var oids = [];
+      if (this.filterUsers)
+        this.filterUsers.forEach(item => {
+          oids.push(item.uoid);
+        });
+      var para = {
+        pageIndex: 1,
+        pageSize: 1000,
+        searchKey: this.searchKey,
+        oids
+      };
+      this.$http.post("/User/List", para).then(res => {
+        var list = res.data.data.list;
+        var d = [];
+        list.forEach(item => {
+          d.push({
+            title: item.name,
+            params: item,
+            render: (h, { root, node, data }) => {
+              return h(
+                "span",
+                {
                   style: {
-                    marginRight: "5px",
-                    color: data.params.gender == 1 ? "#7DA4D1" : "#f56a00"
+                    display: "inline-block",
+                    width: "100%"
                   }
-                }),
-                h(
-                  "span",
-                  {
-                    style: "cursor: pointer;margin-right:5px;",
-                    on: {
-                      click() {
-                        var s = {
-                          oid: data.params.oid,
-                          name: data.params.name,
-                          gender: data.params.gender
-                        };
-                        var b = that.selectedList.some(
-                          x => x.oid === data.params.oid
-                        );
-                        if (!b) {
-                          that.selectedList.push(s);
-                        } else {
-                          that.selectedList.map((item, index) => {
-                            if (item.oid === data.params.oid) {
-                              that.selectedList.splice(index, 1);
-                            }
-                          });
+                },
+                [
+                  h("icon", {
+                    props: {
+                      type: "ios-person"
+                    },
+                    style: {
+                      marginRight: "5px",
+                      color: data.params.gender == 1 ? "#7DA4D1" : "#f56a00"
+                    }
+                  }),
+                  h(
+                    "span",
+                    {
+                      style: "cursor: pointer;margin-right:5px;",
+                      on: {
+                        click: () => {
+                          var s = {
+                            oid: data.params.oid,
+                            name: data.params.name,
+                            gender: data.params.gender
+                          };
+                          var b = this.selectedList.some(
+                            x => x.oid === data.params.oid
+                          );
+                          if (!b) {
+                            this.selectedList.push(s);
+                          } else {
+                            this.selectedList.map((item, index) => {
+                              if (item.oid === data.params.oid) {
+                                this.selectedList.splice(index, 1);
+                              }
+                            });
+                          }
+                          this.$emit("func", this.selectedList);
                         }
                       }
-                    }
-                  },
-                  data.params.name
-                )
-              ]
-            );
-          }
+                    },
+                    data.params.name
+                  )
+                ]
+              );
+            }
+          });
         });
+        this.treeData = d;
       });
-      this.treeData = d;
     },
-    getSearch() {},
     deleteItem(v) {
       this.selectedList.map((item, index) => {
         if (item.oid === v.oid) {
           this.selectedList.splice(index, 1);
         }
       });
+      this.$emit("func", this.selectedList);
     }
   },
   mounted() {
-    this.getTreeData();
+    
+  },
+  watch:{
+    filterUsers(a) {
+      this.getTreeData();
+      this.selectedList = []
+    }
   }
 };
 </script>
@@ -138,9 +161,9 @@ export default {
   float: right;
   color: #111;
   opacity: 0.4;
-  -webkit-transition: background-color .3s;
-  -o-transition: background-color .3s;
-  transition: background-color .3s;
+  -webkit-transition: background-color 0.3s;
+  -o-transition: background-color 0.3s;
+  transition: background-color 0.3s;
   cursor: pointer;
 }
 </style>

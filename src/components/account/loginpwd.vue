@@ -52,35 +52,41 @@ export default {
   },
   computed: {
     formStyle() {
-      let style = {}
-      style.width = `${this.bodyWidth * 0.187}px`
-      let top = parseInt((this.bodyWidth - 221) / 7.387)
+      let style = {};
+      style.width = `${this.bodyWidth * 0.187}px`;
+      let top = parseInt((this.bodyWidth - 221) / 7.387);
       if (top < 155) {
-        top = 155
+        top = 155;
       }
-      style.top = `${top}px`
+      style.top = `${top}px`;
       // 1920 230
       // 1366 155
-      return style
+      return style;
     }
   },
   methods: {
     doLogin() {
       this.$refs.model.validate(valid => {
         if (valid) {
-            this.loading = true;
-          this.$http.post("/account/login", this.model).then(res => {
-            this.loading = false;
-            if (!res.data.iserror) {
-              window.clearInterval(this.interval);
-              var user = res.data.data;
-              axios.defaults.headers.Token = user.token;
-              Util.setUser(JSON.stringify(user));
-              this.$router.push(this.$route.query.f || "/");
-            } else {
-              this.$Notice.error({ title: "提示", desc: res.data.errormsg });
-            }
-          });
+          this.loading = true;
+          this.$http
+            .post("/account/login", this.model)
+            .then(res => {
+              this.loading = false;
+              if (!res.data.iserror) {
+                window.clearInterval(this.interval);
+                var user = res.data.data;
+                axios.defaults.headers.Token = user.token;
+                Util.setUser(JSON.stringify(user));
+                this.$router.push(this.$route.query.f || "/");
+              } else {
+                this.$Notice.error({ title: "提示", desc: res.data.errormsg });
+              }
+            })
+            .catch(error => {
+              this.loading = false;
+              this.$Notice.error({title:'提示',desc:"服务器异常"})
+            });
         }
       });
     }
@@ -119,7 +125,7 @@ export default {
 }
 
 .form-title-text {
-  color: #2C8CF0;
+  color: #2c8cf0;
   font-size: 16px;
   margin-left: 5px;
 }
@@ -136,11 +142,10 @@ export default {
   position: absolute;
   left: 50%;
   bottom: 100px;
-  transform: translateX(-50%)
+  transform: translateX(-50%);
 }
 
 .ivu-form-item {
   margin-bottom: 12px;
 }
-
 </style>

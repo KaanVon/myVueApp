@@ -3,7 +3,7 @@
     <div class="header">
       <div class="header-logo">
         <img src="../../assets/img/logo2.png" />
-        <span class="header-title">成长成就未来</span>
+        <span class="header-title">悠悠互娱知识产权管理系统</span>
       </div>
       <Row type="flex" justify="end" align="middle">
         <Dropdown transfer trigger="click" @on-click="handleClickUserDropdown">
@@ -18,7 +18,8 @@
         </Dropdown>
         <Avatar
           size="large"
-          src="../../assets/img/logo2.png"
+          icon="ios-person"
+          :src="avatar"
           style="background: #619fe7;margin-left: 10px;margin-right: 40px;"
         ></Avatar>
       </Row>
@@ -27,15 +28,9 @@
       <Card :padding="0" style="font-size: 12px;">
         <div class="main-container-content">
           <div class="main-container-menu">
-            <Menu
-              width="auto"
-              :active-name="activename"
-              :open-names="openNames"
-              @on-select="menuSelect"
-              ref="menu"
-            >
-              <template v-for="x in menuList">
-                <Menu-Item v-if="x.submenulist.length <= 0" :name="x.path" :key="x.name">
+            <Menu width="auto" @on-select="menuSelect" ref="menu">
+              <template v-for="x in myMenuList">
+                <Menu-Item v-if="x.children.length <= 0" :name="x.path" :key="x.name">
                   <Icon :type="x.icon"></Icon>
                   <span class="layout-text">{{ x.name }}</span>
                 </Menu-Item>
@@ -44,14 +39,14 @@
                     <Icon :type="x.icon"></Icon>
                     <span>{{x.name}}</span>
                   </template>
-                  <Menu-Item v-for="z in x.submenulist" :name="z.path" :key="z.name">
+                  <Menu-Item v-for="z in x.children" :name="z.path" :key="z.name">
                     <Icon :type="z.icon"></Icon>
                     <span class="layout-text">{{ z.name }}</span>
                   </Menu-Item>
                 </Submenu>
               </template>
             </Menu>
-            <!-- <Spin fix v-if="menuList.length <= 0"></Spin> -->
+            <Spin fix v-if="myMenuList.length <= 0"></Spin>
           </div>
           <div class="main-container-conent">
             <keep-alive>
@@ -70,26 +65,38 @@ import Util from "@/assets/js/util";
 export default {
   data() {
     return {
-      menuList: [
-        {
-          name: "系统管理",
-          path: "",
-          icon: "md-cog",
-          submenulist: [
-            { name: "用户管理", path: "/contact", icon: "md-contact" },
-            { name: "权限管理", path: "/permission", icon: "md-key" }
-          ]
-        }
-      ],
+      // myMenuList: [],
       openNames: ["系统管理"],
-      username: "冯凯",
+      username: "",
       activename: "",
       avatar: ""
     };
   },
+  computed:{
+    myMenuList () {
+      return this.$store.state.myMenuList
+    }
+  },
   methods: {
+    init() {
+      var user = Util.getUser();
+      this.username = user.name;
+      this.avatar = Util.serverUrl() + user.avatar;
+       this.$store.dispatch('getMyMenuList')
+    },
+    getMyMenuList() {
+      this.$http.post("/user/GetMenuPermission").then(res => {
+        if (!res.data.iserror) {
+          this.myMenuList = res.data.data;
+        } else {
+          this.$Modal.error({
+            title: "提示",
+            content: res.data.errormsg
+          });
+        }
+      });
+    },
     handleClickUserDropdown(name) {
-      console.log(name);
       switch (name) {
         case "loginout":
           this.exit();
@@ -113,6 +120,9 @@ export default {
         }
       });
     }
+  },
+  mounted() {
+    this.init();
   }
 };
 </script>

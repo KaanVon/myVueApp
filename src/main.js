@@ -8,11 +8,13 @@ import 'iview/dist/styles/iview.css'
 import axios from 'axios'
 import Util from '@/assets/js/util'
 import '@/assets/js/components'
+import store from './store'
 Vue.use(iView)
 
 Vue.config.productionTip = false
 
 axios.defaults.baseURL = Util.serverUrl()
+axios.defaults.timeout =  6000;
 Vue.$http = Vue.prototype.$http = axios
 
 let user = Util.getUser()
@@ -21,6 +23,7 @@ axios.defaults.headers.Token = user ? user.token : ''
 new Vue({
   el: '#app',
   router,
+  store,
   components: { App },
   template: '<App/>'
 })

@@ -14,7 +14,7 @@ var router = new Router({
 })
 
 
-const whitePath = ['/login', '/loginpwd', '/qrcode', '/forget']
+const whitePath = ['/login', '/login2', '/forget']
 
 router.beforeEach((to, from, next) => {
   iView.LoadingBar.start()
